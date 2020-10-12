@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import firebase from "firebase";
+import axios from "axios";
 
 Vue.use(Vuex);
 
@@ -8,7 +9,9 @@ export default new Vuex.Store({
   state: {
     drawer: false,
     glossaries: [],
-    detail: {},
+    detail: {
+      id:"", name:"",description:""
+    },
     login_user: null,
     selectedGlossary: null,
     selectedIndex: null,
@@ -22,24 +25,25 @@ export default new Vuex.Store({
     emptyGlossaries(state) {
       state.glossaries = [];
     },
-    addGlossary(state, { id, glossary }) {
-      glossary.id = id;
+    fetchGlossaries(state,glossaryList) {
+      state.glossaries =glossaryList
+      state.detail = state.glossaries[0];
+      state.selectedGlossary = state.glossaries[0];
+      state.selectedIndex = 0;
+    },
+    addGlossary(state, glossary) {
+      console.log(glossary)
       state.glossaries.unshift(glossary);
+      // 入れれてはおるけど要素として弱い
+      console.log(state.glossaries)
       const index = state.glossaries.findIndex(
-        (glossary) => glossary.id === id
+        (gloss) => gloss.id === glossary.id
       );
       state.detail = state.glossaries[index];
       state.selectedGlossary = glossary;
       state.selectedIndex = index;
     },
-    searchGlossary(state, { id, glossary }) {
-      glossary.id = id;
-      state.glossaries = [];
-      state.glossaries.push(glossary);
-      state.detail = glossary;
-    },
-    showDetail(state, { id, glossary }) {
-      glossary.id = id;
+    showDetail(state, glossary ) {
       state.detail = glossary;
     },
     deleteGlossary(state, id) {
@@ -55,9 +59,9 @@ export default new Vuex.Store({
         state.detail = {};
       }
     },
-    editGlossary(state, { id, glossary }) {
+    editGlossary(state, glossary ) {
       const index = state.glossaries.findIndex(
-        (glossary) => glossary.id === id
+        (gloss) => gloss.id === glossary.id
       );
       state.glossaries.splice(index, 1);
       state.glossaries.unshift(glossary);
@@ -76,100 +80,38 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    fetchGlossaries({ commit, getters }) {
-      commit("emptyGlossaries");
-      firebase
-        .firestore()
-        .collection(`glossaries/${getters.uid}/glossary`)
-        .orderBy("editTime")
-        .get()
-        .then((snapshot) => {
-          snapshot.forEach((doc) =>
-            commit("addGlossary", { id: doc.id, glossary: doc.data() })
-          );
-        });
+    async fetchGlossaries({ commit ,getters}) {
+      console.log(getters.uid)
+      const res=await axios.get('http://localhost:8080/')
+      console.log(res)
+      const glossaryList=res.data.glossaryList
+      commit('fetchGlossaries',glossaryList)
     },
-    searchGlossaries({ commit, getters }, name) {
-      console.log(name);
-      firebase
-        .firestore()
-        .collection(`glossaries/${getters.uid}/glossary`)
-        .where("name", "==", name)
-        .get()
-        .then((snapshot) => {
-          snapshot.forEach((doc) => {
-            commit("searchGlossary", { id: doc.id, glossary: doc.data() });
-            console.log(doc.data());
-          });
-        });
+    async searchGlossaries({ commit }, name) {
+      console.log(name)
+      const res=await axios.get('http://localhost:8080/search/'+name)
+      const glossaryList=res.data.glossaryList
+      commit('fetchGlossaries',glossaryList)
     },
-    firstAddGlossary({ commit, getters }, glossary) {
-      if (getters.uid) {
-        firebase
-          .firestore()
-          .collection(`glossaries/${getters.uid}/glossary`)
-          .set(glossary, { merge: true })
-          .then((doc) => {
-            commit("addGlossary", { id: doc.id, glossary: glossary });
-          });
-      }
+    async addGlossary({ commit }, glossary) {
+      const res=await axios.post("http://localhost:8080/add",glossary)
+      console.log(res)
+      commit("addGlossary", glossary );
     },
-    addGlossary({ commit, getters }, glossary) {
-      var date = new Date();
-      glossary.editTime = date;
-      if (getters.uid) {
-        firebase
-          .firestore()
-          .collection(`glossaries/${getters.uid}/glossary`)
-          .add(glossary)
-          .then((doc) => {
-            commit("addGlossary", { id: doc.id, glossary: glossary });
-          });
-      }
+    async findById({ commit }, id) {
+      const res=await axios.get("http://localhost:8080/"+id)
+      const glossary=res.data.glossary
+      commit("showDetail", glossary)
     },
-    findById({ commit, getters }, id) {
-      if (getters.uid) {
-        firebase
-          .firestore()
-          .collection(`glossaries/${getters.uid}/glossary`)
-          .doc(id)
-          .get()
-          .then((doc) => {
-            commit("showDetail", { id: id, glossary: doc.data() });
-          });
-      }
+    async deleteGlossary({ commit }, id) {
+      await axios.delete("http://localhost:8080/"+id)
+      commit("deleteGlossary", id)
     },
-    deleteGlossary({ commit, getters }, id) {
-      if (getters.uid) {
-        firebase
-          .firestore()
-          .collection(`glossaries/${getters.uid}/glossary`)
-          .doc(id)
-          .delete()
-          .then(() => {
-            commit("deleteGlossary", id);
-          });
-      }
-    },
-    editGlossary({ commit, getters }, { id, glossary }) {
-      glossary.id = id;
-      var date = new Date();
-      glossary.editTime = date;
-      console.log(glossary);
-      if (getters.uid) {
-        firebase
-          .firestore()
-          .collection(`glossaries/${getters.uid}/glossary`)
-          .doc(id)
-          .update({
-            name: glossary.name,
-            description: glossary.description,
-            editTime: glossary.editTime,
-          })
-          .then(() => {
-            commit("editGlossary", { id: id, glossary: glossary });
-          });
-      }
+    async editGlossary({ commit },  glossary ) {
+      var date=new Date()
+      glossary.createAt=date
+      await axios.post("http://localhost:8080/edit",glossary)
+      commit("editGlossary", glossary)
     },
     createNotebook({getters},{category}){
       firebase

@@ -40,12 +40,14 @@ export default {
   computed: {
     ...mapState(["detail"]),
   },
+  updated() {
+  },
   methods: {
     ...mapActions(["addGlossary", "editGlossary", "deleteGlossary"]),
     edit(detail) {
       this.editDetail = detail;
       if (detail.id) {
-        this.editGlossary({ id: detail.id, glossary: this.editDetail });
+        this.editGlossary(this.editDetail);
       } else {
         this.addGlossary(this.editDetail);
       }

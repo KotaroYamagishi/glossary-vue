@@ -29,7 +29,7 @@
 
 <script>
 import { mapActions } from "vuex";
-import firebase from "firebase"
+import firebase from "firebase";
 
 export default {
   name: "App",
@@ -44,6 +44,10 @@ export default {
     firebase.auth().onAuthStateChanged((user)=>{
       if(user){
         this.setLoginUser(user);
+        // const findUser=axios.get("https://localhost:8080/user/"+user.uid)
+        // if(!findUser){
+        //   axios.post("https://localhost:8080/user");
+        // }
         if(this.$router.currentRoute.name==="LoginForm"){
           this.$router.push({name:"Main"},()=>{})
           }

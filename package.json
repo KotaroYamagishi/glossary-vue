@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@innologica/vue-dropdown-menu": "^0.1.4",
+    "axios": "^0.20.0",
     "core-js": "^3.6.5",
     "firebase": "^7.21.1",
     "moment": "^2.29.0",
