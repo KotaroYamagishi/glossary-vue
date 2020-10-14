@@ -12,8 +12,8 @@
             hover
             class="ma-2"
             :color="
-              $store.state.selectedGlossary &&
-              index === $store.state.selectedIndex
+              selectedGlossary &&
+              index === selectedIndex
                 ? 'black'
                 : '#333333'
             "
@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
+import { mapState, mapMutations,mapActions } from "vuex";
 // import moment from "moment";
 
 export default {
@@ -47,19 +47,13 @@ export default {
     };
   },
   computed: {
-    ...mapState(["glossaries"]),
+    ...mapState("glossary",["glossaries","selectedGlossary","selectedIndex"]),
   },
-  // filters: {
-  //   moment: function (date) {
-  //     console.log(date);
-  //     return moment(date).format("YYYY/MM/DD HH:mm"); // eslint-disable-line
-  //   },
-  // },
   methods: {
-    ...mapActions(["findById", "deleteGlossary"]),
+    ...mapMutations("glossary",["changeSelectedGlossaryAndIndex"]),
+    ...mapActions("glossary",["findById", "deleteGlossary"]),
     showDetail(glossary, index) {
-      this.$store.state.selectedGlossary = glossary;
-      this.$store.state.selectedIndex = index;
+      this.changeSelectedGlossaryAndIndex({glossary:glossary, index:index});
       this.findById(glossary.id);
     },
   },

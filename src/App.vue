@@ -43,6 +43,7 @@ export default {
   created(){
     firebase.auth().onAuthStateChanged((user)=>{
       if(user){
+        console.log("d")
         this.setLoginUser(user);
         // const findUser=axios.get("https://localhost:8080/user/"+user.uid)
         // if(!findUser){
@@ -54,6 +55,7 @@ export default {
           this.text="ログイン成功"
           this.snackbar=true
           this.fetchGlossaries();
+          this.fetchCategories();
       }else{
         this.deleteLoginUser();
         this.$router.push("/", () => {});
@@ -65,7 +67,9 @@ export default {
   components: {
   },
   methods: {
-    ...mapActions(["fetchGlossaries","searchGlossaries","toggleSideNav","setLoginUser","deleteLoginUser"]),
+    ...mapActions("glossary",["fetchGlossaries","searchGlossaries"]),
+    ...mapActions("category",["fetchCategories"]),
+    ...mapActions(["toggleSideNav","setLoginUser","deleteLoginUser"]),
     searchName(name){
       if(name){
         this.searchGlossaries(name)

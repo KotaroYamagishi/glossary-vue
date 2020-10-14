@@ -42,9 +42,9 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["addGlossary", "firstAddGlossary"]),
+    ...mapActions("glossary",["addGlossary", "firstAddGlossary"]),
     add(item) {
-        if (this.$store.state.glossaries) {
+        if (this.$store.state.glossary.glossaries) {
           this.addGlossary(item);
       } else {
         this.firstAddGlossary(item);

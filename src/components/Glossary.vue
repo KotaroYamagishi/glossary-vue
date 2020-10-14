@@ -8,7 +8,25 @@
           </v-col>
           <v-col>
             <v-icon color="green" @click="edit(detail)">mdi-pencil</v-icon>
-            <v-icon color="red" @click="deleted(detail.id)">mdi-delete</v-icon>
+            <v-menu
+              v-model="showMenu"
+              absolute
+              offset-y
+              style="max-width: 600px"
+            >
+              <template v-slot:activator="{ on }">
+                <v-icon v-on="on" dark> mdi-menu </v-icon>
+              </template>
+              <v-list dark dense>
+                <!-- ダイアログみたいなものを表示、クリックしたカテゴリーを追加 -->
+                <v-list-item @click="toggleCategoryDialog">
+                  <v-icon>mdi-book</v-icon>ノートを移動する
+                </v-list-item>
+                <v-list-item @click="deleted(detail.id)">
+                  <v-icon color="red">mdi-delete</v-icon>メモを削除する
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-col>
         </v-row>
       </v-flex>
@@ -31,26 +49,27 @@ export default {
   name: "Glossary",
   data() {
     return {
-      editDetail: {
-        name: "",
-        description: "",
-      },
+      showMenu: false,
     };
   },
   computed: {
-    ...mapState(["detail"]),
+    ...mapState("glossary", ["detail"]),
   },
-  updated() {
-  },
+  updated() {},
   methods: {
-    ...mapActions(["addGlossary", "editGlossary", "deleteGlossary"]),
+    ...mapActions(["toggleCategoryDialog"]),
+    ...mapActions("glossary", [
+      "addGlossary",
+      "editGlossary",
+      "deleteGlossary",
+    ]),
     edit(detail) {
-      this.editDetail = detail;
       if (detail.id) {
-        this.editGlossary(this.editDetail);
+        this.editGlossary(detail);
       } else {
-        this.addGlossary(this.editDetail);
+        this.addGlossary(detail);
       }
+
     },
     deleted(id) {
       if (confirm("削除してもよろしいですか？")) {
@@ -70,7 +89,7 @@ export default {
 .namefield {
   font-family: bold;
 }
-.memo{
-overflow: auto;
+.memo {
+  overflow: auto;
 }
 </style>
