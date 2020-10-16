@@ -40,6 +40,8 @@ export default {
       text:""
     }
   },
+  computed:{
+  },
   created(){
     firebase.auth().onAuthStateChanged((user)=>{
       if(user){

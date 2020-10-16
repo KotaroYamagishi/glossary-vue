@@ -8,7 +8,7 @@ export default {
       id: "",
       name: "",
       description: "",
-      categoryId:""
+      categoryId: "",
     },
     selectedGlossary: null,
     selectedIndex: null,
@@ -72,39 +72,47 @@ export default {
     },
   },
   actions: {
-    async fetchGlossaries({ commit }) {
-      const res = await axios.get("http://localhost:8080/");
+    async fetchGlossaries({ commit, rootGetters }) {
+      var root = rootGetters;
+      console.log(root.uid);
+      const res = await axios.get("http://localhost:8080/" + root.uid);
       console.log(res);
       const glossaryList = res.data.glossaryList;
       commit("fetchGlossaries", glossaryList);
     },
-    async searchGlossaries({ commit }, name) {
+    async searchGlossaries({ commit, rootGetters }, name) {
       console.log(name);
-      const res = await axios.get("http://localhost:8080/search/" + name);
+      var root = rootGetters;
+      const res = await axios.get(
+        "http://localhost:8080/" + root.uid + "/search/" + name
+      );
       const glossaryList = res.data.glossaryList;
       commit("fetchGlossaries", glossaryList);
     },
     async findGlossariesByCategoryId({ commit }, categoryId) {
       console.log(categoryId);
-      const res = await axios.get(
-        "http://localhost:8080/cate/" + categoryId
-      );
+      const res = await axios.get("http://localhost:8080/cate/" + categoryId);
       const glossaryList = res.data.glossaryList;
-      console.log(glossaryList.length)
-      if(glossaryList.length !== 0){
+      console.log(glossaryList.length);
+      if (glossaryList.length !== 0) {
         commit("findGlossariesByCategoryId", glossaryList);
-      }else{
+      } else {
         const res2 = await axios.get("http://localhost:8080/");
-        commit("fetchGlossaries",res2.data.glossaryList)
+        commit("fetchGlossaries", res2.data.glossaryList);
       }
     },
-    async addGlossary({ commit }, glossary) {
+    async addGlossary({ commit, rootGetters }, glossary) {
+      glossary.userId = rootGetters.uid;
       const res = await axios.post("http://localhost:8080/add", glossary);
-      console.log(res);
+      glossary.id=res.data.glossaryId
+      console.log(res.data.glossaryId)
       commit("addGlossary", glossary);
     },
-    async findById({ commit }, id) {
-      const res = await axios.get("http://localhost:8080/" + id);
+    async findById({ commit, rootGetters }, id) {
+      const root = rootGetters;
+      const res = await axios.get(
+        "http://localhost:8080/" + root.uid + "/" + id
+      );
       const glossary = res.data.glossary;
       commit("showDetail", glossary);
     },

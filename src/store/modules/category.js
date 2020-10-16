@@ -39,17 +39,18 @@ export default {
     },
   },
   actions: {
-    async fetchCategories({ commit }) {
-      const res = await axios.get("http://localhost:8080/category/");
+    async fetchCategories({ commit ,rootGetters}) {
+      const res = await axios.get("http://localhost:8080/category/"+rootGetters.uid);
       const categoryList = res.data.categoryList;
       commit("findAll", categoryList);
     },
     async findCategoryById({ commit }, id) {
-      var res = await axios.get("http://localhost:8080/category/" + id);
+      var res = await axios.get("http://localhost:8080/category/find/" + id);
       console.log(res.data.category);
       commit("findById", res.data.category);
     },
-    async addCategory({ commit }, category) {
+    async addCategory({ commit ,rootGetters}, category) {
+      category.userId= rootGetters.uid
       const res = await axios.post(
         "http://localhost:8080/category/insert",
         category
